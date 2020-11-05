@@ -9,7 +9,7 @@ and can be cached by the database server too.
 Install the package with composer. It is recommended to use the package only in development environments.
 
 ```
-composer require webandco/asset-usage-cache
+composer require webandco/neos-asset-usage-cache
 ```
 
 ## Features
