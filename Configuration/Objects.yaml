@@ -1,0 +1,9 @@
+Webandco\AssetUsageCache\Service\AssetCacheService:
+  properties:
+    assetUsageCache:
+      object:
+        factoryObjectName: Neos\Flow\Cache\CacheManager
+        factoryMethodName: getCache
+        arguments:
+          1:
+            value: Webandco_AssetUsageCache

@@ -1,0 +1,20 @@
+{
+    "description": "Improve asset usage query performance",
+    "type": "neos-package",
+    "name": "webandco/neos-asset-usage-cache",
+    "minimum-stability": "dev",
+    "repositories": [],
+    "require": {
+        "neos/neos": "^4.3 || ^5.0 || dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Webandco\\AssetUsageCache\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "Webandco.AssetUsageCache"
+        }
+    }
+}

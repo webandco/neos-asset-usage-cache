@@ -1,0 +1,12 @@
+Webandco:
+  AssetUsageCache:
+    assetUsageStrategies:
+      AssetUsageInNodePropertiesStrategy:
+        className: 'Neos\Neos\Domain\Strategy\AssetUsageInNodePropertiesStrategy'
+        disable: true
+      AssetUsageCacheStrategy:
+        className: 'Webandco\AssetUsageCache\Domain\Strategy\AssetUsageCacheStrategy'
+        disable: false
+    queryCache:
+      disable: false
+      realTimeUpdate: true

@@ -1,0 +1,5 @@
+Webandco_AssetUsageCache:
+  frontend: Neos\Cache\Frontend\VariableFrontend
+  persistent: false
+  backendOptions:
+    defaultLifetime: 3600
