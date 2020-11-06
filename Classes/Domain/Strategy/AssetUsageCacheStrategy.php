@@ -2,9 +2,9 @@
 namespace Webandco\AssetUsageCache\Domain\Strategy;
 
 /*
- * This file is part of the Neos.Neos package.
+ * This file is part of the Webandco.AssetUsageCache package
  *
- * (c) Contributors of the Neos Project - www.neos.io
+ * (c) web&co - www.webandco.com
  *
  * This package is Open Source Software. For the full copyright and license
  * information, please view the LICENSE file which was distributed with this
