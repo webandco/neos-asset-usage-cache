@@ -18,6 +18,7 @@ use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\ContentRepository\Domain\Model\Workspace;
 use Neos\ContentRepository\Domain\Repository\NodeDataRepository;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Configuration\ConfigurationManager;
 use Neos\Flow\Persistence\Doctrine\DataTypes\JsonArrayType;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Media\Domain\Model\AssetInterface;
@@ -40,6 +41,17 @@ class AssetCacheService
      * @var VariableFrontend
      */
     protected $assetUsageCache;
+
+    /**
+     * @Flow\Inject
+     * @var ConfigurationManager
+     */
+    protected $configurationManager;
+
+    /**
+     * @var int Unix timestamp when the cache has been populated
+     */
+    protected $cachePopulationTime = null;
 
     public function flushCache(){
         $this->assetUsageCache->flush();
@@ -70,11 +82,18 @@ class AssetCacheService
     }
 
     public function isPopulated() : bool{
-        if($this->isDisabled() || !$this->assetUsageCache->get('isPopulated')){
+        if($this->isDisabled()){
             return false;
         }
 
-        return (bool)$this->assetUsageCache->get('isPopulated');
+        $populationTime = $this->assetUsageCache->get('isPopulated');
+        if(0 < $populationTime){
+            $this->cachePopulationTime = $populationTime;
+
+            return true;
+        }
+
+        return false;
     }
 
     protected function populateCache($uuidToNodes, $prefix=null){
@@ -91,21 +110,34 @@ class AssetCacheService
                 return sha1('poid:'.$poid);
             }, $poids);
 
-            $this->assetUsageCache->set($key, $poids, $tags);
+            $this->setCacheEntry($key, $poids, $tags);
         }
     }
 
-    public function populateCacheByUUIDLists(array $identifiersToNodes, array $assetsToNodes) {
+    public function populateCacheByUUIDLists(array $identifiersToNodes, array $assetsToNodes, bool $initial) {
         if($this->isDisabled()){
             return;
         }
 
-        $this->assetUsageCache->set('isPopulated', false);
+        if($initial || !$this->isPopulated()){
+            $this->cachePopulationTime = time();
+            $this->setCacheEntry('isPopulated', 0);
+        }
 
         $this->populateCache($identifiersToNodes, 'identifier');
         $this->populateCache($assetsToNodes, 'asset');
 
-        $this->assetUsageCache->set('isPopulated', true);
+        $this->setCacheEntry('isPopulated', $this->cachePopulationTime);
+    }
+
+    protected function setCacheEntry(string $entryIdentifier, $variable, array $tags = []){
+        $pendingCachetime = $this->getCacheLifetime($this->cachePopulationTime);
+        // negative cache time will not be cached
+        if($pendingCachetime < 0){
+            return;
+        }
+
+        $this->assetUsageCache->set($entryIdentifier, $variable, $tags, $pendingCachetime);
     }
 
     public function readUUIDListsFromCache($identifiersToSearch, &$identifiersToNodes, &$assetsToNodes){
@@ -142,8 +174,8 @@ class AssetCacheService
             $uuidList[] = $poid;
         };
 
-        $this->populateCacheByUUIDLists([$uuid], $getMergedUUIDList('identifier', $uuid, $poid), []);
-        $this->populateCacheByUUIDLists([$uuid], [], $getMergedUUIDList('asset', $uuid, $poid));
+        $this->populateCacheByUUIDLists([$uuid], $getMergedUUIDList('identifier', $uuid, $poid), [], false);
+        $this->populateCacheByUUIDLists([$uuid], [], $getMergedUUIDList('asset', $uuid, $poid), false);
     }
 
     public function getEntriesByPOID($poid){
@@ -169,5 +201,33 @@ class AssetCacheService
 
             $this->populateCache($cacheEntries);
         }
+    }
+
+    protected function getBackendConfiguredLifetime(){
+        $defaultLifetime = $this->configurationManager->getConfiguration(ConfigurationManager::CONFIGURATION_TYPE_CACHES, 'Webandco_AssetUsageCache.backendOptions.defaultLifetime');
+
+        if(is_null($defaultLifetime)){
+            $defaultLifetime = 3600;
+        }
+
+        return $defaultLifetime;
+    }
+
+    protected function getCacheLifetime($populationTime){
+        $backendLifetime = $this->getBackendConfiguredLifetime();
+        if($backendLifetime === 0){
+            return 0;
+        }
+
+        $cacheEndTime = $populationTime+$backendLifetime;
+
+        $pendingLifeTime = $cacheEndTime-time();
+
+        if($pendingLifeTime <= 0){
+            // dont cache it!
+            return -1;
+        }
+
+        return $pendingLifeTime;
     }
 }

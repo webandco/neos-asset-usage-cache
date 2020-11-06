@@ -83,6 +83,10 @@ class DatabaseService
     }
 
     public function getNodesByPOIDs($poids){
+        if(count($poids) == 0){
+            return [];
+        }
+
         $query = $this->nodeDataRepository->createQuery();
 
         $query->matching(
@@ -95,6 +99,10 @@ class DatabaseService
     }
 
     public function fetchPoidProperties($poid){
+        if(empty($poid)){
+            return null;
+        }
+
         $sql = 'SELECT properties FROM neos_contentrepository_domain_model_nodedata';
         $sql .= ' WHERE ';
         $sql .= '   persistence_object_identifier = \''.$poid.'\'';

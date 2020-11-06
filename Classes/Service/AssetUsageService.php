@@ -79,7 +79,7 @@ class AssetUsageService
 
         if(!$cacheIsDisabled){
             if(!$cacheIsPopulated){
-                $this->assetCacheService->populateCacheByUUIDLists($identifiersToNodes, $assetsToNodes);
+                $this->assetCacheService->populateCacheByUUIDLists($identifiersToNodes, $assetsToNodes, true);
             }
             else{
                 $this->assetCacheService->readUUIDListsFromCache($identifiersToSearch, $identifiersToNodes, $assetsToNodes);
@@ -163,7 +163,7 @@ class AssetUsageService
             $identifiersToSearch = array_merge(array_keys($identifiersToNodes), array_keys($assetsToNodes));
             $this->assetCacheService->readUUIDListsFromCache($identifiersToSearch, $identifiersToNodes, $assetsToNodes);
 
-            $this->assetCacheService->populateCacheByUUIDLists($identifiersToNodes, $assetsToNodes);
+            $this->assetCacheService->populateCacheByUUIDLists($identifiersToNodes, $assetsToNodes, false);
         }
     }
 
