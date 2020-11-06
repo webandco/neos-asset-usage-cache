@@ -1,4 +1,5 @@
 <?php
+
 namespace Webandco\AssetUsageCache\Service;
 
 /*
@@ -64,24 +65,23 @@ class AssetUsageService
     {
         $identifiersToSearch = $this->dbService->getAssetIdentifiersIncludingVariants($asset);
 
-        $cacheIsDisabled  = $this->assetCacheService->isDisabled();
+        $cacheIsDisabled = $this->assetCacheService->isDisabled();
         $cacheIsPopulated = $this->assetCacheService->isPopulated();
 
         $identifiersToNodes = [];
-        $assetsToNodes      = [];
+        $assetsToNodes = [];
 
-        if($cacheIsDisabled || !$cacheIsPopulated){
+        if ($cacheIsDisabled || !$cacheIsPopulated) {
             $nodes = $this->dbService->queryAssetAndIdentifiers();
             foreach ($nodes as $poid => $properties) {
                 $this->updateNodesLists($poid, $properties, $identifiersToNodes, $assetsToNodes);
             }
         }
 
-        if(!$cacheIsDisabled){
-            if(!$cacheIsPopulated){
+        if (!$cacheIsDisabled) {
+            if (!$cacheIsPopulated) {
                 $this->assetCacheService->populateCacheByUUIDLists($identifiersToNodes, $assetsToNodes, true);
-            }
-            else{
+            } else {
                 $this->assetCacheService->readUUIDListsFromCache($identifiersToSearch, $identifiersToNodes, $assetsToNodes);
             }
         }
@@ -91,9 +91,10 @@ class AssetUsageService
         return $finalPoids;
     }
 
-    protected function updateNodesLists(string $poid, string $properties, &$identifiersToNodes, &$assetsToNodes){
-        $uuidFinder = function(&$uuidToNodes, $regex, $poid, $properties){
-            $matches            = [];
+    protected function updateNodesLists(string $poid, string $properties, &$identifiersToNodes, &$assetsToNodes)
+    {
+        $uuidFinder = function (&$uuidToNodes, $regex, $poid, $properties) {
+            $matches = [];
             if (preg_match_all($regex, $properties, $matches)) {
                 foreach ($matches[1] as $uuid) {
                     if (!isset($uuidToNodes[$uuid])) {
@@ -111,13 +112,14 @@ class AssetUsageService
         $uuidFinder($assetsToNodes, '/asset:\\\\\\/\\\\\\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"/is', $poid, $properties);
     }
 
-    public function getPOIDsByAssetIdentifiers($identifiers, $assetsList, $identifiersList){
+    public function getPOIDsByAssetIdentifiers($identifiers, $assetsList, $identifiersList)
+    {
         $finalPoids = [];
 
-        foreach($identifiers as $uuid){
+        foreach ($identifiers as $uuid) {
             if (isset($assetsList[$uuid])) {
-                foreach($assetsList[$uuid] as $poid) {
-                    if(in_array($poid, $finalPoids)){
+                foreach ($assetsList[$uuid] as $poid) {
+                    if (in_array($poid, $finalPoids)) {
                         continue;
                     }
                     $finalPoids[] = $poid;
@@ -125,8 +127,8 @@ class AssetUsageService
             }
 
             if (isset($identifiersList[$uuid])) {
-                foreach($identifiersList[$uuid] as $poid) {
-                    if(in_array($poid, $finalPoids)){
+                foreach ($identifiersList[$uuid] as $poid) {
+                    if (in_array($poid, $finalPoids)) {
                         continue;
                     }
                     $finalPoids[] = $poid;
@@ -148,16 +150,16 @@ class AssetUsageService
      */
     public function nodeAdded(NodeInterface $node): void
     {
-        if(!$this->assetCacheService->isPopulated() || !$this->assetCacheService->isRealTimeUpdateEnabled()){
+        if (!$this->assetCacheService->isPopulated() || !$this->assetCacheService->isRealTimeUpdateEnabled()) {
             return;
         }
 
         $properties = $this->dbService->getJsonEncodedProperties($node);
-        if($this->propertiesNeedToBeConsidered($node, $properties)){
+        if ($this->propertiesNeedToBeConsidered($node, $properties)) {
             $poid = $this->dbService->getPOIDByObject($node->getNodeData());
 
             $identifiersToNodes = [];
-            $assetsToNodes      = [];
+            $assetsToNodes = [];
             $this->updateNodesLists($poid, $properties, $identifiersToNodes, $assetsToNodes);
 
             $identifiersToSearch = array_merge(array_keys($identifiersToNodes), array_keys($assetsToNodes));
@@ -169,7 +171,7 @@ class AssetUsageService
 
     public function nodeUpdated(NodeInterface $node): void
     {
-        if(!$this->assetCacheService->isPopulated() || !$this->assetCacheService->isRealTimeUpdateEnabled()){
+        if (!$this->assetCacheService->isPopulated() || !$this->assetCacheService->isRealTimeUpdateEnabled()) {
             return;
         }
 
@@ -181,7 +183,7 @@ class AssetUsageService
 
     public function nodeRemoved(NodeInterface $node): void
     {
-        if(!$this->assetCacheService->isPopulated() || !$this->assetCacheService->isRealTimeUpdateEnabled()){
+        if (!$this->assetCacheService->isPopulated() || !$this->assetCacheService->isRealTimeUpdateEnabled()) {
             return;
         }
 
@@ -189,8 +191,9 @@ class AssetUsageService
         $this->assetCacheService->removePOIDFromCache($poid);
     }
 
-    protected function propertiesNeedToBeConsidered(NodeInterface $node, string $properties){
+    protected function propertiesNeedToBeConsidered(NodeInterface $node, string $properties)
+    {
         return strpos($node->getPath(), SiteService::SITES_ROOT_PATH) === 0 &&
-               (strpos($properties, '"__identifier": ') !== false || strpos($properties, 'asset:\\/\\/') !== false);
+            (strpos($properties, '"__identifier": ') !== false || strpos($properties, 'asset:\\/\\/') !== false);
     }
 }

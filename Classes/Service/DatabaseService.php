@@ -1,4 +1,5 @@
 <?php
+
 namespace Webandco\AssetUsageCache\Service;
 
 /*
@@ -48,7 +49,8 @@ class DatabaseService
      */
     protected $nodeDataRepository;
 
-    public function getAssetIdentifiersIncludingVariants(AssetInterface $asset){
+    public function getAssetIdentifiersIncludingVariants(AssetInterface $asset)
+    {
         $identifiersToSearch = [];
 
         $poid = $this->getPOIDByObject($asset);
@@ -64,7 +66,8 @@ class DatabaseService
         return $identifiersToSearch;
     }
 
-    public function queryAssetAndIdentifiers(){
+    public function queryAssetAndIdentifiers()
+    {
         // To support various database systems we only query for `asset:` instead of the json string `asset:\/\/`
         $sql = 'SELECT persistence_object_identifier, properties FROM neos_contentrepository_domain_model_nodedata';
         $sql .= ' WHERE ';
@@ -82,8 +85,9 @@ class DatabaseService
         return $nodes;
     }
 
-    public function getNodesByPOIDs($poids){
-        if(count($poids) == 0){
+    public function getNodesByPOIDs($poids)
+    {
+        if (count($poids) == 0) {
             return [];
         }
 
@@ -98,27 +102,28 @@ class DatabaseService
         return $nodes;
     }
 
-    public function fetchPoidProperties($poid){
-        if(empty($poid)){
+    public function fetchPoidProperties($poid)
+    {
+        if (empty($poid)) {
             return null;
         }
 
         $sql = 'SELECT properties FROM neos_contentrepository_domain_model_nodedata';
         $sql .= ' WHERE ';
-        $sql .= '   persistence_object_identifier = \''.$poid.'\'';
+        $sql .= '   persistence_object_identifier = \'' . $poid . '\'';
 
         /** @var \Doctrine\ORM\QueryBuilder $queryBuilder */
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $node = $queryBuilder->getEntityManager()->getConnection()->query($sql)->fetch();
-        if($node) {
+        if ($node) {
             return $node['properties'];
-        }
-        else{
+        } else {
             return null;
         }
     }
 
-    public function getJsonEncodedProperties(NodeInterface $node){
+    public function getJsonEncodedProperties(NodeInterface $node)
+    {
         /** @var Connection $connection */
         $connection = $this->entityManager->getConnection();
 
@@ -129,7 +134,8 @@ class DatabaseService
         return $properties;
     }
 
-    public function getPOIDByObject($object){
+    public function getPOIDByObject($object)
+    {
         return $this->persistenceManager->getIdentifierByObject($object);
     }
 }
