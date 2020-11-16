@@ -14,7 +14,16 @@ composer require webandco/neos-asset-usage-cache
 
 ## Features
 
-This package provides various features to improve performance of querying the asset usage.
+This package provides various features to improve performance of querying the asset usage.  
+
+The alternative package https://github.com/punktDe/elastic-assetusageinnodes also solves the performance problem using an elasticsearch index. The main differences to
+the elasticsearch package are:  
+
+1. This package, `webandco/neos-asset-usage-cache`,  only needs the database you use for NEOS. There is no need for elasticsearch.
+2. We assume the cache to be more short-lived, whereas the elasticsearch package is basically an index of the nodes and updated accordingly.
+3. We also use a different method to inject our own `AssetUsageStrategy`. Via the Settings.yaml you can then disable/enable Strategies as you like. Thus you are more maneuverable and create add/extend your own `AssetUsageStrategy` - which is currently more complicated by default in NEOS.
+4. You can disable the cache completely in `Settings.yaml` if you want and just enable it on purpose, e.g. in a long running command controller of yours.
+5. You can also disable the cache itself and just let the database cache the results. This basically means that the query to determine the asset usage is modified. This approach can be very fast and provides correct results all the time. The drawback is that you need to reconfigure your database to increase query caches which can cause decreased query performance because of internal DB locks. More details and links down below.
 
 ### Configurable asset usage strategy
 
